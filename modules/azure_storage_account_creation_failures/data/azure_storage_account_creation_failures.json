@@ -1,0 +1,114 @@
+{
+  "name": "azure_storage_account_creation_failures",
+  "description": "This incident type refers to the occurrence of errors while trying to create a new Azure Storage Account. The error could be due to naming conflicts or invalid characters in the storage account name, or insufficient quotas for storage accounts in the Azure subscription. This can cause disruption to the storage and retrieval of data, affecting the overall functionality of the Azure Storage Account.",
+  "params": [
+    {
+      "name": "SCOPE",
+      "value": ""
+    },
+    {
+      "name": "RESOURCE_GROUP",
+      "value": ""
+    },
+    {
+      "name": "STORAGE_ACCOUNT_NAME",
+      "value": ""
+    },
+    {
+      "name": "USER_OR_GROUP_PRINCIPAL_NAME",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Azure Storage Account Creation Failures\nThis incident type refers to the occurrence of errors while trying to create a new Azure Storage Account. The error could be due to naming conflicts or invalid characters in the storage account name, or insufficient quotas for storage accounts in the Azure subscription. This can cause disruption to the storage and retrieval of data, affecting the overall functionality of the Azure Storage Account."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Verify Azure CLI Version"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az --version`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## List all storage accounts in a resource group"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az storage account list --resource-group ${RESOURCE_GROUP} --output table`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the storage account name is available"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az storage account check-name --name ${STORAGE_ACCOUNT_NAME} --query \"nameAvailable\"`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check Azure Activity Log for Storage Account Creation Events"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `az monitor activity-log list --resource-group ${RESOURCE_GROUP} --offset 1h`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the storage account name contains any naming conflicts or invalid characters. Ensure that the name adheres to Azure's naming conventions."
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_storage_account_validation($STORAGE_ACCOUNT_NAME)"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Ensure that the user has the necessary permissions to create storage accounts. If not, grant the required permissions."
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_azure_role_assignment($SCOPE, $RESOURCE_GROUP, $STORAGE_ACCOUNT_NAME, $USER_OR_GROUP_PRINCIPAL_NAME)"
+    }
+  ]
+}
